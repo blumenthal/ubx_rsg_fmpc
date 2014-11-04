@@ -1,0 +1,26 @@
+return block
+{
+      name="fmpc_world_model",
+      meta_data="Adapter block that connects a Robot Scene Graph (RSG) with a Fast Model Predictive Controller (FMPC).",
+      port_cache=true,
+
+      --types = {
+
+      --},
+	
+     configurations = {
+	{ name="wm_handle", type_name = "struct rsg_wm_handle", doc="Handle to the world wodel instance. This parameter is mandatory."},
+	{ name="use_mockup", type_name = "bool", doc="If true an internal mockup is used rather than a real system. To be used for testing."},
+      },
+
+      ports = {
+	 { name="fmpc_virtual_fence", out_type_name="float", out_data_len=4, doc="AABB bounding box to constrain the FMPC. [Ax, Ay, Bx, By]" },
+	 { name="fmpc_obstacle", out_type_name="float", out_data_len=3, doc="Obstacle represented as a circle with the following parameters: [x,y,r]" },
+	 { name="fmpc_goal_pose", out_type_name="float", out_data_len=2, doc="A new goal setpoint represented as a point: [x,y]. Theta (rotation) is not supported." },
+	 { name="fmpc_robot_pose", in_type_name="float", in_data_len=2, doc="The current pose of the robot represented as a point: [x,y]. Theta (rotation) is not supported." },
+      },
+      
+      operations = { start=true, stop=true, step=true },
+      
+      cpp=true
+}

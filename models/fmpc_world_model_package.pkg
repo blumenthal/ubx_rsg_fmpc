@@ -1,0 +1,21 @@
+return pkg
+{
+  name="ubx_rsg_fmpc",
+  path="../",
+       
+  --dependencies = {
+
+  --},
+ 
+  --types = {
+
+  --},
+
+  blocks = {
+    { name="fmpc_world_model", file="examples/fmpc_world_model.blx", src_dir="src" },
+  },
+  
+  modules = { 
+    { name="fmpcwmlib", blocks={"fmpc_world_model"} },
+  },  
+}
