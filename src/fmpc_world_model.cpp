@@ -34,6 +34,7 @@ int fmpc_world_model_init(ubx_block_t *b)
 
     	/* Configure the logger - default level won't tell us much */
     	brics_3d::Logger::setMinLoglevel(brics_3d::Logger::LOGDEBUG);
+    	brics_3d::Logger::setLogfile("fmpc_world_model.log");
 
         /* allocate memory for the block local state */
         if ((inf = (struct fmpc_world_model_info*)calloc(1, sizeof(struct fmpc_world_model_info)))==NULL) {
@@ -120,13 +121,13 @@ void fmpc_world_model_step(ubx_block_t *b)
 			Box::BoxPtr resultBox = boost::dynamic_pointer_cast<Box>(shape);
 
 			if (resultBox != 0) {
-				LOG(INFO) << "Box (x,y,z) = " << resultBox->getSizeX() << " "
+				LOG(DEBUG) << "fmpc_wm: Box (x,y,z) = " << resultBox->getSizeX() << " "
 						<< resultBox->getSizeY() << " "
 						<< resultBox->getSizeZ();
 
 				brics_3d::IHomogeneousMatrix44::IHomogeneousMatrix44Ptr boxPose;
-				inf->wm->scene.getTransformForNode(*it, inf->wm->getRootNodeId(), creationTime, boxPose);
-				LOG(INFO) << "Pose of box is = " << std::endl << *boxPose;
+				inf->wm->scene.getTransformForNode(*it, inf->wm->getRootNodeId(), inf->wm->now(), boxPose);
+				LOG(DEBUG) << "fmpc_wm: Pose of box is = " << std::endl << *boxPose;
 
 				const double *matrix = boxPose->getRawData();
 
@@ -153,8 +154,8 @@ void fmpc_world_model_step(ubx_block_t *b)
 	}
 
 	/* Iff there is a result write to port. */
-	if (resultIds.size() > 1) {
-		LOG(INFO) << "AABB of virtual fence is: (" << fenceAABB[0] << ", " << fenceAABB[1] << ", "<< fenceAABB[2] << ", "<< fenceAABB[3] << ")";
+	if (resultIds.size() > 0) {
+		LOG(INFO) << "fmpc_wm: AABB of virtual fence is: (" << fenceAABB[0] << ", " << fenceAABB[1] << ", "<< fenceAABB[2] << ", "<< fenceAABB[3] << ")";
 		write_fmpc_virtual_fence_4(inf->ports.fmpc_virtual_fence, &fenceAABB);
 	}
 
@@ -176,11 +177,11 @@ void fmpc_world_model_step(ubx_block_t *b)
 			inf->wm->scene.getGeometry(*it, shape, creationTime);
 			Sphere::SpherePtr resultSphere = boost::dynamic_pointer_cast<Sphere>(shape);
 			if (resultSphere != 0) {
-				LOG(INFO) << "Sphere (t) = " << resultSphere->getRadius();
+				LOG(DEBUG) << "fmpc_wm: Sphere (r) = " << resultSphere->getRadius();
 
 				brics_3d::IHomogeneousMatrix44::IHomogeneousMatrix44Ptr spherePose;
-				inf->wm->scene.getTransformForNode(*it, inf->wm->getRootNodeId(), creationTime, spherePose);
-				LOG(INFO) << "Pose of sphere is = " << std::endl << *spherePose;
+				inf->wm->scene.getTransformForNode(*it, inf->wm->getRootNodeId(), inf->wm->now(), spherePose);
+				LOG(DEBUG) << "fmpc_wm: Pose of sphere is = " << std::endl << *spherePose;
 
 				const double *matrix = spherePose->getRawData();
 
@@ -192,8 +193,8 @@ void fmpc_world_model_step(ubx_block_t *b)
 	}
 
 	/* Iff there is a result write to port. */
-	if (resultIds.size() > 1) {
-		LOG(INFO) << "Object parameters are (x,y,r): (" << obstacle[0] << ", " << obstacle[1] << ", "<< obstacle[2] << ")";
+	if (resultIds.size() > 0) {
+		LOG(INFO) << "fmpc_wm: Object parameters are (x,y,r): (" << obstacle[0] << ", " << obstacle[1] << ", "<< obstacle[2] << ")";
 		write_fmpc_obstacle_3(inf->ports.fmpc_obstacle, &obstacle);
 	}
 
@@ -208,7 +209,7 @@ void fmpc_world_model_step(ubx_block_t *b)
 
 			brics_3d::IHomogeneousMatrix44::IHomogeneousMatrix44Ptr goalPose;
 			if(inf->wm->scene.getTransformForNode(*it, inf->wm->getRootNodeId(), inf->wm->now(), goalPose)) {
-				LOG(INFO) << "Pose of goal is = " << std::endl << *goalPose;
+				LOG(DEBUG) << "fmpc_wm: Pose of goal is = " << std::endl << *goalPose;
 
 				const double *matrix = goalPose->getRawData();
 				goal[0] = matrix[brics_3d::matrixEntry::x]; // X
@@ -216,8 +217,8 @@ void fmpc_world_model_step(ubx_block_t *b)
 		}
 	}
 
-	if (resultIds.size() > 1) {
-		LOG(INFO) << "Goal parameters are (x,y): (" << goal[0] << ", " << goal[1] << ")";
+	if (resultIds.size() > 0) {
+		LOG(INFO) << "fmpc_wm: Goal parameters are (x,y): (" << goal[0] << ", " << goal[1] << ")";
 		write_fmpc_goal_pose_2(inf->ports.fmpc_goal_pose, &goal);
 	}
 
@@ -227,7 +228,7 @@ void fmpc_world_model_step(ubx_block_t *b)
 	int32_t readBytes = read_fmpc_robot_pose_2(inf->ports.fmpc_robot_pose, &robotPose);
 
 	if(readBytes == sizeof(robotPose)) {
-		LOG(INFO) << "New robot pose retrived (x,y): (" << robotPose[0] << ", " << robotPose << ")";
+		LOG(INFO) << "fmpc_wm: New robot pose retrived (x,y): (" << robotPose[0] << ", " << robotPose << ")";
 
 		queryAttributes.clear();
 		resultIds.clear();
