@@ -1,4 +1,4 @@
-RSG integration into Microblox (UBX)
+RSG adapter for FMPC (Fast Model Predictive Controller)
 ==========================================================
 
 Overview
