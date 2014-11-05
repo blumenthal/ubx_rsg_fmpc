@@ -86,92 +86,162 @@ void fmpc_world_model_cleanup(ubx_block_t *b)
 void fmpc_world_model_step(ubx_block_t *b)
 {
 
-        struct fmpc_world_model_info *inf = (struct fmpc_world_model_info*) b->private_data;
+	struct fmpc_world_model_info *inf = (struct fmpc_world_model_info*) b->private_data;
 
-        /*
-         * Perform queries and write results to the accordin ports.
-         */
+	/* data to be used for the ports */
+	float fenceAABB[4];		// AABB bounding box to constrain the FMPC. [Ax, Ay, Bx, By]
+	float obstacle[3];		// Obstacle represented as a circle with the following parameters: [x,y,r]
+	float goal[2];		// A new goal setpoint represented as a point: [x,y]. Theta (rotation) is not supported.
+	float robotPose[2];		// The current pose of the robot represented as a point: [x,y]. Theta (rotation) is not supported."
 
-        /* data */
-        float fenceAABB[4];
+	/*
+	 * Perform queries and write results to the accordin ports.
+	 */
 
-    	/*
-    	 * Sample queries by the FMPC.
-    	 */
-    	std::vector<Attribute> queryAttributes;
-    	vector<Id> resultIds;
+	std::vector<Attribute> queryAttributes;
+	vector<Id> resultIds;
 
-    	/* Get data and pose of the box */
-    	queryAttributes.clear();
-    	resultIds.clear();
-    	queryAttributes.push_back(Attribute("name", "virtual_fence"));
-    	inf->wm->scene.getNodes(queryAttributes, resultIds);
+	/* Get data and pose of the box */
+	queryAttributes.clear();
+	resultIds.clear();
+	queryAttributes.push_back(Attribute("name", "virtual_fence"));
+	inf->wm->scene.getNodes(queryAttributes, resultIds);
 
-    	for(vector<Id>::iterator it = resultIds.begin(); it!=resultIds.end(); ++it) { // loop over froups of scene objects
+	for(vector<Id>::iterator it = resultIds.begin(); it!=resultIds.end(); ++it) { // loop over groups of scene objects;
 
-    		vector<Id> childs;
-    		inf->wm->scene.getGroupChildren(*it, childs);
+		vector<Id> childs;
+		inf->wm->scene.getGroupChildren(*it, childs);
 
-    		for(vector<Id>::iterator it = childs.begin(); it!=childs.end(); ++it) { // loop over all childs
+		for(vector<Id>::iterator it = childs.begin(); it!=childs.end(); ++it) { // loop over all childs; effectively we take the last found entry
 
-				TimeStamp creationTime;
-				Shape::ShapePtr shape;
-				inf->wm->scene.getGeometry(*it, shape, creationTime);
-				Box::BoxPtr resultBox = boost::dynamic_pointer_cast<Box>(shape);
-				if (resultBox != 0) {
-					LOG(INFO) << "Box (x,y,z) = " << resultBox->getSizeX() << " "
-							<< resultBox->getSizeY() << " "
-							<< resultBox->getSizeZ();
+			TimeStamp creationTime;
+			Shape::ShapePtr shape;
+			inf->wm->scene.getGeometry(*it, shape, creationTime);
+			Box::BoxPtr resultBox = boost::dynamic_pointer_cast<Box>(shape);
 
-					brics_3d::IHomogeneousMatrix44::IHomogeneousMatrix44Ptr boxPose;
-					inf->wm->scene.getTransformForNode(*it, inf->wm->getRootNodeId(), creationTime, boxPose);
-					LOG(INFO) << "Pose of box is = " << std::endl << *boxPose;
+			if (resultBox != 0) {
+				LOG(INFO) << "Box (x,y,z) = " << resultBox->getSizeX() << " "
+						<< resultBox->getSizeY() << " "
+						<< resultBox->getSizeZ();
 
-					const double *matrix = boxPose->getRawData();
+				brics_3d::IHomogeneousMatrix44::IHomogeneousMatrix44Ptr boxPose;
+				inf->wm->scene.getTransformForNode(*it, inf->wm->getRootNodeId(), creationTime, boxPose);
+				LOG(INFO) << "Pose of box is = " << std::endl << *boxPose;
 
-					/*  AABB conventiom
-					 *
-					 *  Ax Ay
-					 *  +---------------                -
-					 *  |              |                ^
-					 *  |       + center c (= pose)   sizeY
-					 *  |              |                v
-					 *  +---------------                -
-					 *                  Bx,By
-					 *
-					 *  |<-- sizeX --->|
-					 *
-					 */
+				const double *matrix = boxPose->getRawData();
 
-					fenceAABB[0] = matrix[brics_3d::matrixEntry::x] - ((resultBox->getSizeX())/2.0); //lop left X
-					fenceAABB[1] = matrix[brics_3d::matrixEntry::y] + ((resultBox->getSizeY())/2.0); //top left Y
-					fenceAABB[2] = matrix[brics_3d::matrixEntry::x] + ((resultBox->getSizeX())/2.0); // bottom right X
-					fenceAABB[3] = matrix[brics_3d::matrixEntry::y] - ((resultBox->getSizeY())/2.0); // bottom right Y
+				/*  AABB conventiom
+				 *
+				 *  Ax Ay
+				 *  +---------------                -
+				 *  |              |                ^
+				 *  |       + center c (= pose)   sizeY
+				 *  |              |                v
+				 *  +---------------                -
+				 *                  Bx,By
+				 *
+				 *  |<-- sizeX --->|
+				 *
+				 */
 
-				}
-    		}
-    	}
-    	write_fmpc_virtual_fence_4(inf->ports.fmpc_virtual_fence, &fenceAABB);
+				fenceAABB[0] = matrix[brics_3d::matrixEntry::x] - ((resultBox->getSizeX())/2.0); //lop left X
+				fenceAABB[1] = matrix[brics_3d::matrixEntry::y] + ((resultBox->getSizeY())/2.0); //top left Y
+				fenceAABB[2] = matrix[brics_3d::matrixEntry::x] + ((resultBox->getSizeX())/2.0); // bottom right X
+				fenceAABB[3] = matrix[brics_3d::matrixEntry::y] - ((resultBox->getSizeY())/2.0); // bottom right Y
+			}
+		}
+	}
 
-    	/* Get data of obstacles (spheres) */
-    	queryAttributes.clear();
-    	resultIds.clear();
-    	queryAttributes.push_back(Attribute("name", "obstacle"));
-    	inf->wm->scene.getNodes(queryAttributes, resultIds);
+	/* Iff there is a result write to port. */
+	if (resultIds.size() > 1) {
+		LOG(INFO) << "AABB of virtual fence is: (" << fenceAABB[0] << ", " << fenceAABB[1] << ", "<< fenceAABB[2] << ", "<< fenceAABB[3] << ")";
+		write_fmpc_virtual_fence_4(inf->ports.fmpc_virtual_fence, &fenceAABB);
+	}
 
-    	for(vector<Id>::iterator it = resultIds.begin(); it!=resultIds.end(); ++it) { // loop over results
-    		TimeStamp creationTime;
-    		Shape::ShapePtr shape;
-    		inf->wm->scene.getGeometry(*it, shape, creationTime);
-    		Sphere::SpherePtr resultSphere = boost::dynamic_pointer_cast<Sphere>(shape);
-    		if (resultSphere != 0) {
-    			LOG(INFO) << "Sphere (r) = " << resultSphere->getRadius();
-    		}
-    		brics_3d::IHomogeneousMatrix44::IHomogeneousMatrix44Ptr spherePose;
-    		inf->wm->scene.getTransformForNode(*it, inf->wm->getRootNodeId(), creationTime, spherePose);
-    		LOG(INFO) << "Pose of sphere is = " << std::endl << *spherePose;
-    	}
+	/* Get data of obstacles (spheres) */
+	queryAttributes.clear();
+	resultIds.clear();
+	queryAttributes.push_back(Attribute("name", "obstacle"));
+	inf->wm->scene.getNodes(queryAttributes, resultIds);
+
+	for(vector<Id>::iterator it = resultIds.begin(); it!=resultIds.end(); ++it) { // loop over groups of scene objects;
+
+		vector<Id> childs;
+		inf->wm->scene.getGroupChildren(*it, childs);
+
+		for(vector<Id>::iterator it = childs.begin(); it!=childs.end(); ++it) { // loop over all childs; effectively we take the last found entry
+
+			TimeStamp creationTime;
+			Shape::ShapePtr shape;
+			inf->wm->scene.getGeometry(*it, shape, creationTime);
+			Sphere::SpherePtr resultSphere = boost::dynamic_pointer_cast<Sphere>(shape);
+			if (resultSphere != 0) {
+				LOG(INFO) << "Sphere (t) = " << resultSphere->getRadius();
+
+				brics_3d::IHomogeneousMatrix44::IHomogeneousMatrix44Ptr spherePose;
+				inf->wm->scene.getTransformForNode(*it, inf->wm->getRootNodeId(), creationTime, spherePose);
+				LOG(INFO) << "Pose of sphere is = " << std::endl << *spherePose;
+
+				const double *matrix = spherePose->getRawData();
+
+				obstacle[0] = matrix[brics_3d::matrixEntry::x]; // X
+				obstacle[1] = matrix[brics_3d::matrixEntry::y]; // Y
+				obstacle[2] = resultSphere->getRadius(); 		// radius
+			}
+		}
+	}
+
+	/* Iff there is a result write to port. */
+	if (resultIds.size() > 1) {
+		LOG(INFO) << "Object parameters are (x,y,r): (" << obstacle[0] << ", " << obstacle[1] << ", "<< obstacle[2] << ")";
+		write_fmpc_obstacle_3(inf->ports.fmpc_obstacle, &obstacle);
+	}
 
 
+	/* Get data for goal pose */
+	queryAttributes.clear();
+	resultIds.clear();
+	queryAttributes.push_back(Attribute("name", "goal"));
+	inf->wm->scene.getNodes(queryAttributes, resultIds);
+
+	for(vector<Id>::iterator it = resultIds.begin(); it!=resultIds.end(); ++it) { // loop over groups of scene objects;
+
+			brics_3d::IHomogeneousMatrix44::IHomogeneousMatrix44Ptr goalPose;
+			if(inf->wm->scene.getTransformForNode(*it, inf->wm->getRootNodeId(), inf->wm->now(), goalPose)) {
+				LOG(INFO) << "Pose of goal is = " << std::endl << *goalPose;
+
+				const double *matrix = goalPose->getRawData();
+				goal[0] = matrix[brics_3d::matrixEntry::x]; // X
+				goal[1] = matrix[brics_3d::matrixEntry::y]; // Y
+		}
+	}
+
+	if (resultIds.size() > 1) {
+		LOG(INFO) << "Goal parameters are (x,y): (" << goal[0] << ", " << goal[1] << ")";
+		write_fmpc_goal_pose_2(inf->ports.fmpc_goal_pose, &goal);
+	}
+
+	/*
+	 * Update the pose of the robot
+	 */
+	int32_t readBytes = read_fmpc_robot_pose_2(inf->ports.fmpc_robot_pose, &robotPose);
+
+	if(readBytes == sizeof(robotPose)) {
+		LOG(INFO) << "New robot pose retrived (x,y): (" << robotPose[0] << ", " << robotPose << ")";
+
+		queryAttributes.clear();
+		resultIds.clear();
+		queryAttributes.push_back(Attribute("name", "robot"));
+		inf->wm->scene.getNodes(queryAttributes, resultIds);
+
+		for(vector<Id>::iterator it = resultIds.begin(); it!=resultIds.end(); ++it) { // loop over groups of scene objects;
+
+	    	brics_3d::IHomogeneousMatrix44::IHomogeneousMatrix44Ptr newRobotPose(new brics_3d::HomogeneousMatrix44(1,0,0,  	// Rotation coefficients
+	    			0,1,0,
+	    			0,0,1,
+	    			robotPose[0],robotPose[1],0)); 	// Translation coefficients
+	    	inf->wm->scene.setTransform(*it, newRobotPose, inf->wm->now());
+		}
+	}
 }
 

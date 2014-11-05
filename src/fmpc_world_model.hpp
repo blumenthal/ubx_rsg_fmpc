@@ -56,9 +56,9 @@ static void update_port_cache(ubx_block_t *b, struct fmpc_world_model_port_cache
 
 /* for each port type, declare convenience functions to read/write from ports */
 def_write_arr_fun(write_fmpc_virtual_fence_4, float, 4)
-//def_write_arr_fun(write_fmpc_obstacle_3, float, 3)
-//def_write_arr_fun(write_fmpc_goal_pose_2, float, 2)
-//def_read_arr_fun(read_fmpc_robot_pose_2, float, 2)
+def_write_arr_fun(write_fmpc_obstacle_3, float, 3)
+def_write_arr_fun(write_fmpc_goal_pose_2, float, 2)
+def_read_arr_fun(read_fmpc_robot_pose_2, float, 2)
 
 /* block operation forward declarations */
 int fmpc_world_model_init(ubx_block_t *b);
