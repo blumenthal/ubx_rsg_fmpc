@@ -48,17 +48,25 @@ if (NOT UBX_ROOT)
 endif()
 
 find_package(Ubx REQUIRED)
+FIND_PACKAGE(Eigen REQUIRED)
+find_package(BRICS_3D REQUIRED)
+ADD_DEFINITIONS(-DEIGEN3)
 
 include_directories(
+  $ENV{FBX_MODULES}
   ${UBX_INCLUDE_DIR}
+  ${BRICS_3D_INCLUDE_DIRS}
+  ${EIGEN_INCLUDE_DIR}
 )
+
+LINK_DIRECTORIES(${BRICS_3D_LINK_DIRECTORIES})
 
 # Compile library fmpcwmlib
 add_library(fmpcwmlib SHARED ..//ubx_rsg_fmpc/src/fmpc_world_model.cpp
 ..//ubx_rsg_fmpc/modules/fmpcwmlib_module.c
 )
 set_target_properties(fmpcwmlib PROPERTIES PREFIX "")
-target_link_libraries(fmpcwmlib ${UBX_LIBRARIES})
+target_link_libraries(fmpcwmlib ${BRICS_3D_LIBRARIES} ${UBX_LIBRARIES})
 
 # Install fmpcwmlib
 install(TARGETS fmpcwmlib DESTINATION ${INSTALL_LIB_BLOCKS_DIR} EXPORT fmpcwmlib-block)
