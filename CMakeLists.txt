@@ -62,8 +62,9 @@ include_directories(
 LINK_DIRECTORIES(${BRICS_3D_LINK_DIRECTORIES})
 
 # Compile library fmpcwmlib
-add_library(fmpcwmlib SHARED ..//ubx_rsg_fmpc/src/fmpc_world_model.cpp
-..//ubx_rsg_fmpc/modules/fmpcwmlib_module.c
+add_library(fmpcwmlib SHARED 
+    src/fmpc_world_model.cpp
+    modules/fmpcwmlib_module.c
 )
 set_target_properties(fmpcwmlib PROPERTIES PREFIX "")
 target_link_libraries(fmpcwmlib ${BRICS_3D_LIBRARIES} ${UBX_LIBRARIES})

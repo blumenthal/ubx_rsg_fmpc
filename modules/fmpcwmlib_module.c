@@ -7,7 +7,7 @@
 int fmpcwmlib_mod_init(ubx_node_info_t* ni)
 {
   int ret;
-  ret=fmpc_world_model_mod_init(ni);
+//  ret=fmpc_world_model_mod_init(ni);
   if(ret!=0)
     goto out;
 
@@ -17,6 +17,6 @@ out:
 
 void fmpcwmlib_mod_cleanup(ubx_node_info_t* ni)
 {
-  fmpc_world_model_mod_cleanup(ni);
+//  fmpc_world_model_mod_cleanup(ni);
 }
 

@@ -12,7 +12,7 @@ void fmpcwmlib_mod_cleanup(ubx_node_info_t* ni);
 /* declare module init and cleanup functions, so that the ubx core can
  * find these when the module is loaded/unloaded.
  * Please edit your license in macro LICENSE_SPDX */
-UBX_MODULE_INIT(fmpcwmlib_mod_init)
-UBX_MODULE_CLEANUP(fmpcwmlib_mod_cleanup)
-UBX_MODULE_LICENSE_SPDX(GPL-2.0+)
+//UBX_MODULE_INIT(fmpcwmlib_mod_init) // causes undefinded symbols over here
+//UBX_MODULE_CLEANUP(fmpcwmlib_mod_cleanup)
+UBX_MODULE_LICENSE_SPDX(BSD-3-Clause)
 
