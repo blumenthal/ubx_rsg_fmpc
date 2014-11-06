@@ -105,6 +105,7 @@ void fmpc_mockup_mod_cleanup(ubx_node_info_t *ni)
 
 UBX_MODULE_INIT(fmpc_mockup_mod_init)
 UBX_MODULE_CLEANUP(fmpc_mockup_mod_cleanup)
+UBX_MODULE_LICENSE_SPDX(BSD-3-Clause)
 
 #endif /* FMPC_MORLD_MODEL_HPP_ */
 
