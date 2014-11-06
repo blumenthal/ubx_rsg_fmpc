@@ -74,3 +74,16 @@ install(TARGETS fmpcwmlib DESTINATION ${INSTALL_LIB_BLOCKS_DIR} EXPORT fmpcwmlib
 set_property(TARGET fmpcwmlib PROPERTY INSTALL_RPATH_USE_LINK_PATH TRUE)
 install(EXPORT fmpcwmlib-block DESTINATION ${INSTALL_CMAKE_DIR})
 
+
+# Compile library fmpcmockuplib
+add_library(fmpcmockuplib SHARED 
+    src/fmpc_mockup.cpp
+)
+set_target_properties(fmpcmockuplib PROPERTIES PREFIX "")
+target_link_libraries(fmpcmockuplib ${UBX_LIBRARIES})
+
+# Install fmpcmockuplib
+install(TARGETS fmpcmockuplib DESTINATION ${INSTALL_LIB_BLOCKS_DIR} EXPORT fmpcmockuplib-block)
+set_property(TARGET fmpcmockuplib PROPERTY INSTALL_RPATH_USE_LINK_PATH TRUE)
+install(EXPORT fmpcmockuplib-block DESTINATION ${INSTALL_CMAKE_DIR})
+
