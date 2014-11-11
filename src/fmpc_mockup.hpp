@@ -56,7 +56,7 @@ static void update_port_cache(ubx_block_t *b, struct fmpc_mockup_port_cache *pc)
 def_read_arr_fun(read_fmpc_virtual_fence_4, float, 4)
 def_read_arr_fun(read_fmpc_obstacle_3, float, 3)
 def_read_arr_fun(read_fmpc_goal_pose_2, float, 2)
-//def_write_arr_fun(write_fmpc_robot_pose_2, float, 2)
+def_write_arr_fun(write_fmpc_robot_pose_2, float, 2)
 
 /* block operation forward declarations */
 int fmpc_mockup_init(ubx_block_t *b);

@@ -92,5 +92,11 @@ void fmpc_mockup_step(ubx_block_t *b)
 	readBytes = read_fmpc_goal_pose_2(inf->ports.fmpc_goal_pose, &inf->goal);
 	printf("\tfmpc_mockup: goal; received %i bytes\n",  readBytes);
 	printf("\tfmpc_mockup: goal = ( %f, %f)\n", inf->goal[0], inf->goal[1]);
+
+	/* write current pose or robot */
+	inf->robotPose[0] = inf->goal[0]/2.0; // just some values that can change over time...
+	inf->robotPose[1] = inf->goal[1]/2.0;
+	printf("\tfmpc_mockup: pose = ( %f, %f)\n", inf->robotPose[0], inf->robotPose[1]);
+	write_fmpc_robot_pose_2(inf->ports.fmpc_robot_pose, &inf->robotPose);
 }
 

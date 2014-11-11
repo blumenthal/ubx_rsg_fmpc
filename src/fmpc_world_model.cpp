@@ -33,7 +33,7 @@ int fmpc_world_model_init(ubx_block_t *b)
         struct fmpc_world_model_info *inf;
 
     	/* Configure the logger - default level won't tell us much */
-    	brics_3d::Logger::setMinLoglevel(brics_3d::Logger::LOGDEBUG);
+    	brics_3d::Logger::setMinLoglevel(brics_3d::Logger::INFO);
     	brics_3d::Logger::setLogfile("fmpc_world_model.log");
 
         /* allocate memory for the block local state */
@@ -66,7 +66,47 @@ int fmpc_world_model_init(ubx_block_t *b)
 /* start */
 int fmpc_world_model_start(ubx_block_t *b)
 {
-        /* struct fmpc_world_model_info *inf = (struct fmpc_world_model_info*) b->private_data; */
+        struct fmpc_world_model_info *inf = (struct fmpc_world_model_info*) b->private_data;
+    	std::vector<Attribute> queryAttributes;
+    	vector<Id> resultIds;
+
+		/* check if "robot" exists already */
+    	queryAttributes.clear();
+    	resultIds.clear();
+    	queryAttributes.push_back(Attribute("name", "robot"));
+    	inf->wm->scene.getNodes(queryAttributes, resultIds);
+
+    	if (resultIds.size() == 0) {
+
+    		/* if it does not exist, then add a new node in the RSG for it */
+    		printf("Setting up a new node for the robot.\n");
+
+        	std::vector<Attribute> attributes;
+        	attributes.clear();
+        	attributes.push_back(Attribute("name", "robot"));
+        	attributes.push_back(Attribute("taskType", "sceneObject"));
+        	Id robotTfId;
+        	brics_3d::IHomogeneousMatrix44::IHomogeneousMatrix44Ptr initialPose(new brics_3d::HomogeneousMatrix44(1,0,0,  	// Rotation coefficients
+        			0,1,0,
+        			0,0,1,
+        			0,0,0.1)); 						// Translation coefficients
+        	inf->wm->scene.addTransformNode(inf->wm->getRootNodeId(), robotTfId, attributes, initialPose, inf->wm->now());
+
+        	attributes.clear();
+        	attributes.push_back(Attribute("name", "bounding_box"));
+        	Box::BoxPtr box(new Box(0.5,0.3,0.2));
+        	Id boxId;
+        	inf->wm->scene.addGeometricNode(robotTfId, boxId, attributes, box, inf->wm->now());
+
+    	}
+
+
+
+
+
+
+
+
         int ret = 0;
         return ret;
 }
@@ -226,9 +266,10 @@ void fmpc_world_model_step(ubx_block_t *b)
 	 * Update the pose of the robot
 	 */
 	int32_t readBytes = read_fmpc_robot_pose_2(inf->ports.fmpc_robot_pose, &robotPose);
+	LOG(INFO) << "fmpc_wm: robot pose; received " << readBytes << "  bytes.";
 
-	if(readBytes == sizeof(robotPose)) {
-		LOG(INFO) << "fmpc_wm: New robot pose retrived (x,y): (" << robotPose[0] << ", " << robotPose << ")";
+	if(readBytes > 0) {
+		LOG(INFO) << "fmpc_wm: New robot pose retrived (x,y): (" << robotPose[0] << ", " << robotPose[1] << ")";
 
 		queryAttributes.clear();
 		resultIds.clear();
