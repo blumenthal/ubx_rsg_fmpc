@@ -57,6 +57,7 @@ include_directories(
   ${UBX_INCLUDE_DIR}
   ${BRICS_3D_INCLUDE_DIRS}
   ${EIGEN_INCLUDE_DIR}
+  $ENV{UBX_ROOT}/std_blocks/ptrig  
 )
 
 LINK_DIRECTORIES(${BRICS_3D_LINK_DIRECTORIES})
@@ -87,3 +88,22 @@ install(TARGETS fmpcmockuplib DESTINATION ${INSTALL_LIB_BLOCKS_DIR} EXPORT fmpcm
 set_property(TARGET fmpcmockuplib PROPERTY INSTALL_RPATH_USE_LINK_PATH TRUE)
 install(EXPORT fmpcmockuplib-block DESTINATION ${INSTALL_CMAKE_DIR})
 
+# Compile library luacoordinatorlib
+add_library(luacoordinatorlib SHARED src/lua_coordinator.c)
+set_target_properties(luacoordinatorlib PROPERTIES PREFIX "")
+target_link_libraries(luacoordinatorlib  ${UBX_LIBRARIES})
+
+# Install luacoordinatorlib
+install(TARGETS luacoordinatorlib DESTINATION ${INSTALL_LIB_BLOCKS_DIR} EXPORT luacoordinatorlib-block)
+set_property(TARGET luacoordinatorlib PROPERTY INSTALL_RPATH_USE_LINK_PATH TRUE)
+install(EXPORT luacoordinatorlib-block DESTINATION ${INSTALL_CMAKE_DIR})
+
+# Compile library motioncoordinatorlib
+add_library(motioncoordinatorlib SHARED src/motion_coordinator.c)
+set_target_properties(motioncoordinatorlib PROPERTIES PREFIX "")
+target_link_libraries(motioncoordinatorlib  ${UBX_LIBRARIES})
+
+# Install motioncoordinatorlib
+install(TARGETS motioncoordinatorlib DESTINATION ${INSTALL_LIB_BLOCKS_DIR} EXPORT motioncoordinatorlib-block)
+set_property(TARGET motioncoordinatorlib PROPERTY INSTALL_RPATH_USE_LINK_PATH TRUE)
+install(EXPORT motioncoordinatorlib-block DESTINATION ${INSTALL_CMAKE_DIR})
