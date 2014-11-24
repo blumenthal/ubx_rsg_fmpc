@@ -19,7 +19,7 @@ char fmpc_world_model_meta[] =
 /* declaration of block configuration */
 ubx_config_t fmpc_world_model_config[] = {
         { .name="wm_handle", .type_name = "struct rsg_wm_handle", .doc="Handle to the world wodel instance. This parameter is mandatory." },
-        { .name="use_mockup", .type_name = "bool", .doc="If true an internal mockup is used rather than a real system. To be used for testing." },
+        { .name="use_mockup", .type_name = "int", .doc="If true an internal mockup is used rather than a real system. To be used for testing." },
         { NULL },
 };
 
