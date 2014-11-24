@@ -50,7 +50,7 @@ static int motion_coordinator_init(ubx_block_t *b)
 	trig_list_data = ubx_config_get_data(b, "trig_blocks");
 	if (trig_list_data != 0) {
 		inf->trig_list = (struct ptrig_config*)trig_list_data->data;
-		inf->trig_list_len = 2u; //(unsigned int)trig_list_data->len;
+		inf->trig_list_len = (unsigned int)trig_list_data->len;
 		printf("motion_coordinator: has %i blocks thet are beeind coordinated.", inf->trig_list_len);
 	} else {
 		ret=-1;
