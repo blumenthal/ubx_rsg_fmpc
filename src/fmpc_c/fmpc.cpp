@@ -241,13 +241,32 @@ static int fmpc_init(ubx_block_t *c)
         inf->p = (int *)mmap(0, 65536, PROT_READ|PROT_WRITE, MAP_SHARED, inf->fd, 0x43c00000);
         fmpc.Axi4lites_BaseAddress=(unsigned int)inf->p;
 #endif
-	LoadMatrixFromFile(A_m, "/tmp/data_fmpc/A.txt");
-	LoadMatrixFromFile(B_m, "/tmp/data_fmpc/B.txt");
-	LoadMatrixFromFile(Q_m, "/tmp/data_fmpc/Q.txt");
-	LoadMatrixFromFile(R_m, "/tmp/data_fmpc/R.txt");
-	LoadMatrixFromFile(Qf_m, "/tmp/data_fmpc/Qf.txt");
-	LoadMatrixFromFile(X_m, "/tmp/data_fmpc/X0.txt");
-	LoadMatrixFromFile(U_m, "/tmp/data_fmpc/U0.txt");
+
+	std::string data_dir( FMPC_DATA_DIR ); //retrives durin compile time; typically points to ../share/ubx/data
+	std::string filename;
+
+	filename = data_dir + "/data_fmpc/A.txt";
+    LoadMatrixFromFile(A_m, filename.c_str());
+	filename = data_dir + "/data_fmpc/B.txt";
+	LoadMatrixFromFile(B_m, filename.c_str());
+	filename = data_dir + "/data_fmpc/Q.txt";
+	LoadMatrixFromFile(Q_m, filename.c_str());
+	filename = data_dir + "/data_fmpc/R.txt";
+	LoadMatrixFromFile(R_m, filename.c_str());
+	filename = data_dir + "/data_fmpc/Qf.txt";
+	LoadMatrixFromFile(Qf_m, filename.c_str());
+	filename = data_dir + "/data_fmpc/X0.txt";
+	LoadMatrixFromFile(X_m, filename.c_str());
+	filename = data_dir + "/data_fmpc/U0.txt";
+	LoadMatrixFromFile(U_m, filename.c_str());
+
+//    LoadMatrixFromFile(A_m, "/tmp/data_fmpc/A.txt");
+//	LoadMatrixFromFile(B_m, "/tmp/data_fmpc/B.txt");
+//	LoadMatrixFromFile(Q_m, "/tmp/data_fmpc/Q.txt");
+//	LoadMatrixFromFile(R_m, "/tmp/data_fmpc/R.txt");
+//	LoadMatrixFromFile(Qf_m, "/tmp/data_fmpc/Qf.txt");
+//	LoadMatrixFromFile(X_m, "/tmp/data_fmpc/X0.txt");
+//	LoadMatrixFromFile(U_m, "/tmp/data_fmpc/U0.txt");
 
 	Matrix2array(A_m,A_a);
 	Matrix2array(B_m,B_a);

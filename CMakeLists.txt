@@ -11,6 +11,7 @@ set(INSTALL_LIB_BLOCKS_DIR lib/ubx/blocks CACHE PATH "Installation directory for
 set(INSTALL_BIN_APPS_DIR bin CACHE PATH "Installation directory for bin")
 set(INSTALL_INCLUDE_DIR include/ubx CACHE PATH "Installation directory for header files (types)")
 set(INSTALL_CMAKE_DIR  share/ubx/cmake CACHE PATH  "Installation directory for CMake files") # default ${DEF_INSTALL_CMAKE_DIR}
+set(INSTALL_DATA_DIR  share/ubx/data CACHE PATH  "Installation directory for data files")
 
 # Make relative paths absolute
 foreach(p LIB_TYPES LIB_BLOCKS BIN INCLUDE CMAKE)
@@ -108,7 +109,10 @@ install(TARGETS motioncoordinatorlib DESTINATION ${INSTALL_LIB_BLOCKS_DIR} EXPOR
 set_property(TARGET motioncoordinatorlib PROPERTY INSTALL_RPATH_USE_LINK_PATH TRUE)
 install(EXPORT motioncoordinatorlib-block DESTINATION ${INSTALL_CMAKE_DIR})
 
+
+
 # Compile library fmpc
+ADD_DEFINITIONS(-DFMPC_DATA_DIR="${CMAKE_INSTALL_PREFIX}/${INSTALL_DATA_DIR}") # was initially /tmp now we use the UBX installation directories
 message( STATUS "KDL_TYPES_INCLUDE_DIRS ${KDL_TYPES_INCLUDE_DIRS}" )
 find_package(kdl-types REQUIRED)
 include_directories(
@@ -129,3 +133,4 @@ target_link_libraries(fmpc  ${UBX_LIBRARIES})
 install(TARGETS fmpc DESTINATION ${INSTALL_LIB_BLOCKS_DIR} EXPORT fmpc-block)
 set_property(TARGET fmpc PROPERTY INSTALL_RPATH_USE_LINK_PATH TRUE)
 install(EXPORT fmpc-block DESTINATION ${INSTALL_CMAKE_DIR})
+install(DIRECTORY src/fmpc_c/data_fmpc DESTINATION ${INSTALL_DATA_DIR})
