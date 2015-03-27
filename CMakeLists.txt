@@ -107,3 +107,25 @@ target_link_libraries(motioncoordinatorlib  ${UBX_LIBRARIES})
 install(TARGETS motioncoordinatorlib DESTINATION ${INSTALL_LIB_BLOCKS_DIR} EXPORT motioncoordinatorlib-block)
 set_property(TARGET motioncoordinatorlib PROPERTY INSTALL_RPATH_USE_LINK_PATH TRUE)
 install(EXPORT motioncoordinatorlib-block DESTINATION ${INSTALL_CMAKE_DIR})
+
+# Compile library fmpc
+message( STATUS "KDL_TYPES_INCLUDE_DIRS ${KDL_TYPES_INCLUDE_DIRS}" )
+find_package(kdl-types REQUIRED)
+include_directories(
+    src/fmpc_c/mol
+    src/fmpc_c/mol/fmpc
+    ${KDL_TYPES_INCLUDE_DIRS}
+)
+add_library(fmpc SHARED 
+    src/fmpc_c/fmpc.cpp 
+    src/fmpc_c/mol/fmpc/fmpc_functions.cpp
+    src/fmpc_c/mol/fmpc/fmpc_solver_top.cpp
+    
+)
+set_target_properties(fmpc PROPERTIES PREFIX "")
+target_link_libraries(fmpc  ${UBX_LIBRARIES})
+
+# Install fmpc
+install(TARGETS fmpc DESTINATION ${INSTALL_LIB_BLOCKS_DIR} EXPORT fmpc-block)
+set_property(TARGET fmpc PROPERTY INSTALL_RPATH_USE_LINK_PATH TRUE)
+install(EXPORT fmpc-block DESTINATION ${INSTALL_CMAKE_DIR})
