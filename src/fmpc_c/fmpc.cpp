@@ -18,8 +18,7 @@ using namespace std;
 #include "mol.hpp"
 #include "fmpc_solver_top.hpp"
 #include "../youbot_driver/types/youbot_base_motorinfo.h"
-//#include "kdl/types/kdl.h"
-#include "/home/sblume/sandbox/microblx_install/include/ubx/types/kdl.h"
+# include <types/kdl.h> // this has moved to the UBX_MODULES
 
 #include "types/fmpc_config.h"
 #include "types/fmpc_config.h.hexarr"
